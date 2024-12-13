@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { BookOpen, Loader2, List, Github, Sparkles, Newspaper } from 'lucide-react';
+import { BookOpen, Loader2, Github, Sparkles, Newspaper, List, Search } from 'lucide-react';
 import { useArxivPapers } from '@/app/hooks/useArxivPapers';
 import { PaperCard } from '@/app/components/PaperCard';
 import { UserMenu } from '@/app/components/UserMenu';
@@ -51,12 +51,12 @@ export function Dashboard() {
 
   const handleQueryChange = (query: string) => {
     setCurrentQuery(query);
-    setSelectedTag(null); // Clear tag selection when query changes
+    setSelectedTag(null);
   };
 
   const handleTagSelect = (tag: string | null) => {
     setSelectedTag(tag);
-    setCurrentQuery(null); // Reset to default query when tag is selected
+    setCurrentQuery(null);
   };
 
   if (!user) {
@@ -88,153 +88,188 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <div className="container mx-auto px-4 py-8">
-        <header className="flex items-center justify-between mb-12">
-          <div className="flex items-center gap-3">
-            <BookOpen className="w-12 h-12 text-blue-600" />
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900">Research Buddy</h1>
-              <div className="space-y-1">
-                <p className="text-xl text-gray-600">
-                  Track and Triage the Latest Research Papers on ArXiv
-                </p>
-                <a
-                  href="https://github.com/swookey-thinky/research_buddy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
-                >
-                  <Github className="w-4 h-4" />
-                  View source code on GitHub
-                </a>
-              </div>
-            </div>
-          </div>
-          <UserMenu />
-        </header>
-
-        <div className="flex items-center gap-4 mb-8">
+      <div className="flex h-screen">
+        {/* Sidebar */}
+        <div className="w-16 bg-white shadow-lg flex flex-col items-center py-4 space-y-8">
           <button
             onClick={() => setCurrentTab('papers')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+            className={`p-3 rounded-xl transition-colors ${
               currentTab === 'papers'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:bg-white/50'
+                ? 'bg-blue-100 text-blue-600'
+                : 'text-gray-600 hover:bg-gray-100'
             }`}
+            title="Search"
           >
-            <BookOpen className="w-5 h-5" />
-            Papers
+            <Search className="w-6 h-6" />
           </button>
           <button
             onClick={() => setCurrentTab('reading-list')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+            className={`p-3 rounded-xl transition-colors ${
               currentTab === 'reading-list'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:bg-white/50'
+                ? 'bg-blue-100 text-blue-600'
+                : 'text-gray-600 hover:bg-gray-100'
             }`}
+            title="Reading List"
           >
-            <List className="w-5 h-5" />
-            Reading List
+            <List className="w-6 h-6" />
           </button>
           <button
             onClick={() => setCurrentTab('hugging-face')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+            className={`p-3 rounded-xl transition-colors ${
               currentTab === 'hugging-face'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:bg-white/50'
+                ? 'bg-blue-100 text-blue-600'
+                : 'text-gray-600 hover:bg-gray-100'
             }`}
+            title="Hugging Face"
           >
-            <Sparkles className="w-5 h-5" />
-            Hugging Face
+            <Sparkles className="w-6 h-6" />
           </button>
           <button
             onClick={() => setCurrentTab('digest')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+            className={`p-3 rounded-xl transition-colors ${
               currentTab === 'digest'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:bg-white/50'
+                ? 'bg-blue-100 text-blue-600'
+                : 'text-gray-600 hover:bg-gray-100'
             }`}
+            title="Digest"
           >
-            <Newspaper className="w-5 h-5" />
-            Digest
+            <Newspaper className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {currentTab === 'papers' && (
-            <div className="lg:col-span-1 space-y-6">
-              <TagFilter
-                selectedTag={selectedTag}
-                onTagSelect={handleTagSelect}
-              />
-              <QueryPicker
-                currentQuery={currentQuery}
-                onQueryChange={handleQueryChange}
-              />
-              <TitleSearch
-                onPaperSelect={setSelectedPaper}
-                selectedPaperId={selectedPaper?.id}
-              />
-              <KeywordSearch
-                onPaperSelect={setSelectedPaper}
-                selectedPaperId={selectedPaper?.id}
-              />
-            </div>
-          )}
+        {/* Main Content */}
+        <div className="flex-1 overflow-auto">
+          <div className="ml-2 pr-4 pb-8">
+            <header className="flex flex-col mb-8">
+              <div className="flex items-center justify-between mb-4 bg-blue-200/40 backdrop-blur-sm px-6 py-4 rounded-lg shadow-sm">
+                <div className="flex items-center gap-3">
+                  <BookOpen className="w-12 h-12 text-blue-600" />
+                  <div>
+                    <h1 className="text-4xl font-bold text-gray-900">Research Buddy</h1>
+                    <div className="space-y-1">
+                      <p className="text-xl text-gray-600">
+                        Track and Triage the Latest Research Papers on ArXiv
+                      </p>
+                      <a
+                        href="https://github.com/swookey-thinky/research_buddy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+                      >
+                        <Github className="w-4 h-4" />
+                        View source code on GitHub
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                <UserMenu />
+              </div>
 
-          <div className={currentTab === 'papers' ? 'lg:col-span-3' : 'lg:col-span-4'}>
+              {/* Section Title */}
+              {currentTab === 'papers' ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Search className="w-5 h-5 text-blue-600" />
+                    <h2 className="text-xl font-semibold text-gray-900">Search</h2>
+                  </div>
+                  <p className="text-gray-600">
+                    Search and filter through the latest research papers from ArXiv
+                  </p>
+                </div>
+              ) : currentTab === 'reading-list' ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <List className="w-5 h-5 text-blue-600" />
+                    <h2 className="text-xl font-semibold text-gray-900">Reading List</h2>
+                  </div>
+                  <p className="text-gray-600">
+                    Access your saved papers and manage your reading list
+                  </p>
+                </div>
+              ) : currentTab === 'hugging-face' ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-blue-600" />
+                    <h2 className="text-xl font-semibold text-gray-900">Hugging Face</h2>
+                  </div>
+                  <p className="text-gray-600">
+                    Browse the latest machine learning papers from Hugging Face's daily paper listings at huggingface.co/papers
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Newspaper className="w-5 h-5 text-blue-600" />
+                    <h2 className="text-xl font-semibold text-gray-900">Digest</h2>
+                  </div>
+                  <p className="text-gray-600">
+                    View daily research digests based on your search criteria
+                  </p>
+                </div>
+              )}
+            </header>
+
+            {/* Content based on selected tab */}
             {currentTab === 'papers' ? (
-              <>
-                <DatePicker
-                  startDate={startDate}
-                  endDate={endDate}
-                  onDateChange={(start, end) => {
-                    setStartDate(start);
-                    setEndDate(end);
-                  }}
-                />
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="lg:col-span-1 space-y-6">
+                  <TagFilter
+                    selectedTag={selectedTag}
+                    onTagSelect={handleTagSelect}
+                  />
+                  <QueryPicker
+                    currentQuery={currentQuery}
+                    onQueryChange={handleQueryChange}
+                  />
+                  <TitleSearch
+                    onPaperSelect={setSelectedPaper}
+                    selectedPaperId={selectedPaper?.id}
+                  />
+                  <KeywordSearch
+                    onPaperSelect={setSelectedPaper}
+                    selectedPaperId={selectedPaper?.id}
+                  />
+                </div>
+                <div className="lg:col-span-3">
+                  {error && (
+                    <div className="text-center text-red-600 bg-red-50 p-4 rounded-lg mb-6">
+                      <p className="font-semibold">Error loading papers</p>
+                      <p className="text-sm mt-1">{error}</p>
+                    </div>
+                  )}
 
-            {loading && (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-              </div>
-            )}
-
-            {error && (
-              <div className="text-center text-red-600 bg-red-50 p-4 rounded-lg mb-6">
-                <p className="font-semibold">Error loading papers</p>
-                <p className="text-sm mt-1">{error}</p>
-              </div>
-            )}
-
-            {!loading && !error && (
-              <div className="mb-6 text-center">
-                <div className="inline-block bg-white px-4 py-2 rounded-full shadow-sm">
-                  <span className="font-medium text-gray-700">
-                    {filteredPapers.length === 0 ? 'No papers found' : `${filteredPapers.length} paper${filteredPapers.length === 1 ? '' : 's'} found`}
-                  </span>
+                  {loading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                    </div>
+                  ) : filteredPapers.length > 0 ? (
+                    <div className="space-y-6">
+                      <div className="text-center">
+                        <div className="inline-block bg-white px-4 py-2 rounded-full shadow-sm">
+                          <span className="font-medium text-gray-700">
+                            {filteredPapers.length} paper{filteredPapers.length === 1 ? '' : 's'} found
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-6">
+                        {filteredPapers.map((paper) => (
+                          <PaperCard
+                            key={paper.id}
+                            paper={paper}
+                            onSelect={() => setSelectedPaper(paper)}
+                            isSelected={paper.id === selectedPaper?.id}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-600 bg-white p-8 rounded-lg shadow">
+                      <p className="text-lg font-medium">No papers found</p>
+                      <p className="mt-2">Try adjusting your search criteria or date range</p>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-
-            <div className="grid grid-cols-1 gap-6">
-              {filteredPapers.map((paper) => (
-                <PaperCard
-                  key={paper.id}
-                  paper={paper}
-                  onSelect={() => setSelectedPaper(paper)}
-                  isSelected={selectedPaper?.id === paper.id}
-                />
-              ))}
-            </div>
-
-                {!loading && filteredPapers.length === 0 && !error && (
-                  <div className="text-center text-gray-600 bg-white p-8 rounded-lg shadow">
-                    <p className="text-lg font-medium">No papers found</p>
-                    <p className="mt-2">Try adjusting your search criteria</p>
-                  </div>
-                )}
-              </>
             ) : currentTab === 'reading-list' ? (
               <ReadingList
                 onPaperSelect={setSelectedPaper}
@@ -245,12 +280,12 @@ export function Dashboard() {
                 onPaperSelect={setSelectedPaper}
                 selectedPaperId={selectedPaper?.id}
               />
-            ) : currentTab === 'digest' ? (
+            ) : (
               <Digest
                 onPaperSelect={setSelectedPaper}
                 selectedPaperId={selectedPaper?.id}
               />
-            ) : null}
+            )}
           </div>
         </div>
 

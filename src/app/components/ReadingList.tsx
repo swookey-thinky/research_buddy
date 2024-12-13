@@ -57,10 +57,6 @@ export function ReadingList({ onPaperSelect, selectedPaperId }: ReadingListProps
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <BookOpen className="w-5 h-5 text-blue-600" />
-        <h2 className="text-xl font-semibold text-gray-900">Reading List</h2>
-      </div>
       {papers.length === 0 ? (
         <p className="text-gray-600">No papers in reading list</p>
       ) : (

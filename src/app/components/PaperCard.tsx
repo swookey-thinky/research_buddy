@@ -83,7 +83,7 @@ export function PaperCard({ paper, onSelect, isSelected }: PaperCardProps) {
   return (
     <div
       onClick={handleCardClick}
-      className={`bg-white rounded-xl shadow-lg p-6 transition-all hover:shadow-xl cursor-pointer group relative ${
+      className={`bg-white rounded-xl shadow-lg p-6 max-w-4xl transition-all hover:shadow-xl cursor-pointer group relative ${
         isSelected ? 'ring-2 ring-blue-500' : ''
       }`}
     >

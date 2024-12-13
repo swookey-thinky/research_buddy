@@ -229,19 +229,7 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-gray-900 text-center mb-4">
-          Digest
-        </h1>
-
-        <div className="max-w-3xl mx-auto mb-8">
-          <p className="text-center text-gray-600 text-lg leading-relaxed">
-            Create your personalized ArXiv digest by selecting topics and describing your research interests.
-            Every night, we&apos;ll analyze new papers that match your criteria and provide a curated digest with
-            summaries of the most relevant papers.
-          </p>
-        </div>
-
+      <div className="ml-2 pr-4 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1 space-y-6">
             <TopicPicker
