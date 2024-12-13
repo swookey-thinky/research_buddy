@@ -96,7 +96,7 @@ export function Help() {
               <li>
                 Submit feature requests and bug reports on our{' '}
                 <a
-                  href="https://github.com/swookey-thinky/arxiv_digest"
+                  href="https://github.com/swookey-thinky/research_buddy"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-800 hover:underline"

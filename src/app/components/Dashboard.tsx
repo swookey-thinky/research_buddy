@@ -65,7 +65,7 @@ export function Dashboard() {
         <div className="text-center max-w-xl mx-auto px-4">
           <div className="flex items-center justify-center gap-3 mb-6">
             <BookOpen className="w-12 h-12 text-blue-600" />
-            <h1 className="text-4xl font-bold text-gray-900">ArXiv AI Papers</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Research Buddy</h1>
           </div>
           <p className="text-xl text-gray-600 mb-8">
             Sign in to track and triage the latest research papers from ArXiv
@@ -93,13 +93,13 @@ export function Dashboard() {
           <div className="flex items-center gap-3">
             <BookOpen className="w-12 h-12 text-blue-600" />
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">ArXiv AI Papers</h1>
+              <h1 className="text-4xl font-bold text-gray-900">Research Buddy</h1>
               <div className="space-y-1">
                 <p className="text-xl text-gray-600">
                   Track and Triage the Latest Research Papers on ArXiv
                 </p>
                 <a
-                  href="https://github.com/swookey-thinky/arxiv_digest"
+                  href="https://github.com/swookey-thinky/research_buddy"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
