@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { PaperCard } from '@/app/components/PaperCard';
 import { useAuth } from '@/app/contexts/AuthContext';
 import type { Paper } from '@/app/types/types';

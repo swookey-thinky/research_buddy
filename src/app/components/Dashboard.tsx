@@ -6,7 +6,6 @@ import { useArxivPapers } from '@/app/hooks/useArxivPapers';
 import { PaperCard } from '@/app/components/PaperCard';
 import { UserMenu } from '@/app/components/UserMenu';
 import { LoginButton } from '@/app/components/LoginButton';
-import { DatePicker } from '@/app/components/DatePicker';
 import { QueryPicker } from '@/app/components/QueryPicker';
 import { TagFilter } from '@/app/components/TagFilter';
 import { PaperSidebar } from '@/app/components/PaperSidebar';
@@ -19,6 +18,7 @@ import { ReadingList } from '@/app/components/ReadingList';
 import { HuggingFace } from '@/app/components/HuggingFace';
 import { Digest } from '@/app/components/Digest';
 import type { Paper } from '@/app/types/types';
+import { DatePicker } from '@/app/components/DatePicker';
 
 type Tab = 'papers' | 'reading-list' | 'hugging-face' | 'digest';
 
@@ -193,7 +193,7 @@ export function Dashboard() {
                     <h2 className="text-xl font-semibold text-gray-900">Hugging Face</h2>
                   </div>
                   <p className="text-gray-600">
-                    Browse the latest machine learning papers from Hugging Face's daily paper listings at huggingface.co/papers
+                    Browse the latest machine learning papers from Hugging Face&apos;s daily paper listings at huggingface.co/papers
                   </p>
                 </div>
               ) : (
@@ -238,19 +238,34 @@ export function Dashboard() {
                     </div>
                   )}
 
-                  {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                    </div>
-                  ) : filteredPapers.length > 0 ? (
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <div className="inline-block bg-white px-4 py-2 rounded-full shadow-sm">
-                          <span className="font-medium text-gray-700">
-                            {filteredPapers.length} paper{filteredPapers.length === 1 ? '' : 's'} found
-                          </span>
-                        </div>
+                  <div className="space-y-6">
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-start">
+                        <DatePicker
+                          startDate={startDate}
+                          endDate={endDate}
+                          onDateChange={(start, end) => {
+                            setStartDate(start);
+                            setEndDate(end);
+                          }}
+                        />
                       </div>
+                      {!loading && (
+                        <div className="flex items-start">
+                          <div className="inline-block bg-gray-50 px-3 py-1 rounded-full">
+                            <span className="font-medium text-gray-700">
+                              {filteredPapers.length} paper{filteredPapers.length === 1 ? '' : 's'} found
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {loading ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                      </div>
+                    ) : filteredPapers.length > 0 ? (
                       <div className="space-y-6">
                         {filteredPapers.map((paper) => (
                           <PaperCard
@@ -261,13 +276,13 @@ export function Dashboard() {
                           />
                         ))}
                       </div>
-                    </div>
-                  ) : (
-                    <div className="text-center text-gray-600 bg-white p-8 rounded-lg shadow">
-                      <p className="text-lg font-medium">No papers found</p>
-                      <p className="mt-2">Try adjusting your search criteria or date range</p>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="text-center text-gray-600 bg-white p-8 rounded-lg shadow">
+                        <p className="text-lg font-medium">No papers found</p>
+                        <p className="mt-2">Try adjusting your search criteria or date range</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ) : currentTab === 'reading-list' ? (
