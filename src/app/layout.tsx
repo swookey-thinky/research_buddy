@@ -7,7 +7,7 @@ import { Providers } from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Arxiv Digest',
+  title: 'Research Buddy',
   description: 'Track and triage the latest research papers from ArXiv',
 };
 
