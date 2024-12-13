@@ -19,7 +19,7 @@ export function PaperSidebar({ paper, onClose }: PaperSidebarProps) {
   if (!paper) return null;
 
   return (
-    <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-xl transform transition-transform duration-200 ease-in-out z-50 overflow-y-auto">
+    <div className="fixed inset-y-0 right-0 w-[32rem] bg-white shadow-xl transform transition-transform duration-200 ease-in-out z-50 overflow-y-auto">
       <div className="sticky top-0 bg-white z-10 p-4 border-b">
         <div className="flex items-center justify-between mb-2">
           <button
