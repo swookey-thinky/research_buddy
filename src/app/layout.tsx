@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Research Buddy',
-  description: 'Track and triage the latest research papers from ArXiv',
+  description: 'Track and triage the latest research papers.',
 };
 
 export default function RootLayout({
