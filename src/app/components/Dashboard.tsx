@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { BookOpen, Loader2, Github, Sparkles, Newspaper, List, Search, Rss } from 'lucide-react';
+import { BookOpen, Loader2, Github, Sparkles, Newspaper, List, Search, Rss, Library } from 'lucide-react';
 import { useArxivPapers } from '@/app/hooks/useArxivPapers';
 import { PaperCard } from '@/app/components/PaperCard';
 import { UserMenu } from '@/app/components/UserMenu';
@@ -20,8 +20,9 @@ import { Digest } from '@/app/components/Digest';
 import type { Paper } from '@/app/types/types';
 import { DatePicker } from '@/app/components/DatePicker';
 import { AINews } from '@/app/components/AINews';
+import { AdditionalResources } from './AdditionalResources';
 
-type Tab = 'papers' | 'reading-list' | 'hugging-face' | 'digest' | 'ai-news';
+type Tab = 'papers' | 'reading-list' | 'hugging-face' | 'digest' | 'ai-news' | 'resources';
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -147,6 +148,17 @@ export function Dashboard() {
           >
             <Rss className="w-6 h-6" />
           </button>
+          <button
+            onClick={() => setCurrentTab('resources')}
+            className={`p-3 rounded-xl transition-colors ${
+              currentTab === 'resources'
+                ? 'bg-blue-100 text-blue-600'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+            title="Additional Resources"
+          >
+            <Library className="w-6 h-6" />
+          </button>
         </div>
 
         {/* Main Content */}
@@ -218,7 +230,7 @@ export function Dashboard() {
                     View daily research digests based on your search criteria
                   </p>
                 </div>
-              ) : (
+              ) : currentTab === 'ai-news' ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Rss className="w-5 h-5 text-blue-600" />
@@ -233,6 +245,16 @@ export function Dashboard() {
                 >
                   @smol_ai
                 </a>)
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Library className="w-5 h-5 text-blue-600" />
+                    <h2 className="text-xl font-semibold text-gray-900">Additional Resources</h2>
+                  </div>
+                  <p className="text-gray-600">
+                    Explore helpful resources and tools for research
                   </p>
                 </div>
               )}
@@ -326,6 +348,8 @@ export function Dashboard() {
               />
             ) : currentTab === 'ai-news' ? (
               <AINews />
+            ) : currentTab === 'resources' ? (
+              <AdditionalResources />
             ) : (
               <Digest
                 onPaperSelect={setSelectedPaper}
