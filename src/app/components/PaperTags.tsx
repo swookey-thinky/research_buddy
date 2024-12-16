@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Plus, X, Loader2, ChevronDown } from 'lucide-react';
 import { usePaperTags } from '@/app/hooks/usePaperTags';
 import { useAllUserTags } from '@/app/hooks/useAllUserTags';
@@ -20,6 +20,32 @@ export function PaperTags({ paperId }: PaperTagsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const tagsContainerRef = useRef<HTMLDivElement>(null);
+
+  const existingTags = allUserTags.filter(
+    tagName => !tags.some(tag => tag.name === tagName)
+  );
+
+  // Find the first matching existing tag
+  const findMatchingTag = useCallback(() => {
+    if (!newTag.trim()) return null;
+    return existingTags.find(tag =>
+      tag.toLowerCase().startsWith(newTag.toLowerCase())
+    );
+  }, [newTag, existingTags]);
+
+  // Scroll to matching tag
+  useEffect(() => {
+    if (isOpen && tagsContainerRef.current && newTag.trim()) {
+      const matchingTag = findMatchingTag();
+      if (matchingTag) {
+        const tagElement = tagsContainerRef.current.querySelector(`[data-tag="${matchingTag}"]`);
+        if (tagElement) {
+          tagElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }
+    }
+  }, [newTag, isOpen, findMatchingTag]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -72,10 +98,6 @@ export function PaperTags({ paperId }: PaperTagsProps) {
       handleAddTag(newTag);
     }
   };
-
-  const existingTags = allUserTags.filter(
-    tagName => !tags.some(tag => tag.name === tagName)
-  );
 
   return (
     <div className="flex flex-wrap items-center gap-2 mt-3">
@@ -136,12 +158,20 @@ export function PaperTags({ paperId }: PaperTagsProps) {
                 <div className="px-2 py-1 text-xs text-gray-500 bg-gray-50">
                   Existing tags
                 </div>
-                <div className="max-h-48 overflow-y-auto">
+                <div
+                  ref={tagsContainerRef}
+                  className="max-h-48 overflow-y-auto"
+                >
                   {existingTags.map((tagName) => (
                     <button
                       key={tagName}
+                      data-tag={tagName}
                       onClick={() => handleAddTag(tagName)}
-                      className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between"
+                      className={`w-full text-left px-3 py-1.5 text-sm hover:bg-gray-100 flex items-center justify-between ${
+                        newTag.trim() && tagName.toLowerCase().startsWith(newTag.toLowerCase())
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'text-gray-700'
+                      }`}
                     >
                       {tagName}
                       <Plus className="w-3 h-3 opacity-0 group-hover:opacity-100" />
