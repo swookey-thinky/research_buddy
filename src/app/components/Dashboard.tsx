@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { BookOpen, Loader2, Github, Sparkles, Newspaper, List, Search } from 'lucide-react';
+import { BookOpen, Loader2, Github, Sparkles, Newspaper, List, Search, Rss } from 'lucide-react';
 import { useArxivPapers } from '@/app/hooks/useArxivPapers';
 import { PaperCard } from '@/app/components/PaperCard';
 import { UserMenu } from '@/app/components/UserMenu';
@@ -19,8 +19,9 @@ import { HuggingFace } from '@/app/components/HuggingFace';
 import { Digest } from '@/app/components/Digest';
 import type { Paper } from '@/app/types/types';
 import { DatePicker } from '@/app/components/DatePicker';
+import { AINews } from '@/app/components/AINews';
 
-type Tab = 'papers' | 'reading-list' | 'hugging-face' | 'digest';
+type Tab = 'papers' | 'reading-list' | 'hugging-face' | 'digest' | 'ai-news';
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -135,6 +136,17 @@ export function Dashboard() {
           >
             <Newspaper className="w-6 h-6" />
           </button>
+          <button
+            onClick={() => setCurrentTab('ai-news')}
+            className={`p-3 rounded-xl transition-colors ${
+              currentTab === 'ai-news'
+                ? 'bg-blue-100 text-blue-600'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+            title="AI News"
+          >
+            <Rss className="w-6 h-6" />
+          </button>
         </div>
 
         {/* Main Content */}
@@ -196,7 +208,7 @@ export function Dashboard() {
                     Browse the latest machine learning papers from Hugging Face&apos;s daily paper listings at huggingface.co/papers
                   </p>
                 </div>
-              ) : (
+              ) : currentTab === 'digest' ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Newspaper className="w-5 h-5 text-blue-600" />
@@ -204,6 +216,23 @@ export function Dashboard() {
                   </div>
                   <p className="text-gray-600">
                     View daily research digests based on your search criteria
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Rss className="w-5 h-5 text-blue-600" />
+                    <h2 className="text-xl font-semibold text-gray-900">AI News</h2>
+                  </div>
+                  <p className="text-gray-600">
+                    Stay updated with the latest AI news and developments (from <a
+                  href="https://twitter.com/smol_ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  @smol_ai
+                </a>)
                   </p>
                 </div>
               )}
@@ -295,6 +324,8 @@ export function Dashboard() {
                 onPaperSelect={setSelectedPaper}
                 selectedPaperId={selectedPaper?.id}
               />
+            ) : currentTab === 'ai-news' ? (
+              <AINews />
             ) : (
               <Digest
                 onPaperSelect={setSelectedPaper}
