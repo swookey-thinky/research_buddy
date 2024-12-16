@@ -1,6 +1,6 @@
 'use client';
 
-import { Library, Link, Book, Video, Database, Users, Newspaper } from 'lucide-react';
+import { Link, Book, Video, Database, Users, Newspaper, Github } from 'lucide-react';
 
 export function AdditionalResources() {
   return (
@@ -118,6 +118,65 @@ export function AdditionalResources() {
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
               NVidia Research Blog
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <section className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Github className="w-6 h-6 text-blue-600" />
+          <h2 className="text-2xl font-semibold text-gray-800">Github Repositories</h2>
+        </div>
+        <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
+          <li>
+            <a
+              href="https://github.com/huggingface/transformers"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Hugging Face Transformers
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://github.com/pytorch/pytorch"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              PyTorch
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://github.com/openai/whisper"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              OpenAI Whisper
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://github.com/AUTOMATIC1111/stable-diffusion-webui"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Stable Diffusion WebUI
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://github.com/microsoft/DeepSpeed"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Microsoft DeepSpeed
             </a>
           </li>
         </ul>
