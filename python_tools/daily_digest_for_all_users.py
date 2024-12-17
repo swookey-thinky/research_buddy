@@ -23,6 +23,7 @@ Based on my specific research interests, relevancy score out of 10 for each pape
 Additionally, please generate 1-2 sentence summary for each paper explaining why it's relevant to my research interests.
 Please keep the paper order the same as in the input list, with one json format per line. Example is:
 1. {"Relevancy score": "an integer score out of 10", "Reasons for match": "1-2 sentence short reasonings"}
+In the JSON response, make sure to escape any quotations marks inside of the "Reasons for match" text with a triple backslash.
 
 My research interests are:
 """
@@ -261,22 +262,41 @@ def post_process_chat_gpt_response(paper_data, response, threshold_score=8):
     pattern = r"^\d+\. |\\"
     import pprint
 
-    try:
-        score_items = [
-            json.loads(re.sub(pattern, "", line))
-            for line in json_items
-            if "relevancy score" in line.lower()
-        ]
-    except Exception:
-        pprint.pprint(
-            [
-                re.sub(pattern, "", line)
-                for line in json_items
-                if "relevancy score" in line.lower()
-            ]
-        )
-        raise RuntimeError("failed")
-    # pprint.pprint(score_items)
+    # Go line by line, so that an error processing any entry does not take
+    # out the whole job.
+    score_items = []
+
+    for line in json_items:
+        try:
+            if "relevancy score" in line.lower():
+                score_items.append(json.loads(re.sub(pattern, "", line)))
+            else:
+                score_items.append(
+                    {
+                        "Relevancy score": 0,
+                        "Reasons for match": f"No relevancy score in response line '{line}'.",
+                    }
+                )
+
+        except json.decoder.JSONDecodeError:
+            pprint.pprint(re.sub(pattern, "", line))
+            print(f"JSON Decode Exception, ignoring entry '{line}': {e}")
+            score_items.append(
+                {
+                    "Relevancy score": 0,
+                    "Reasons for match": "Error processing response.",
+                }
+            )
+
+        except Exception as e:
+            print(f"Unknown exception, ignoring entry '{line}': {e}")
+            score_items.append(
+                {
+                    "Relevancy score": 0,
+                    "Reasons for match": "Error processing response.",
+                }
+            )
+
     scores = []
     for item in score_items:
         temp = item["Relevancy score"]
