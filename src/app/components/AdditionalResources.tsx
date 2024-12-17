@@ -141,6 +141,16 @@ export function AdditionalResources() {
           </li>
           <li>
             <a
+              href="https://github.com/huggingface/diffusers"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Hugging Face Diffusers
+            </a>
+          </li>
+          <li>
+            <a
               href="https://github.com/pytorch/pytorch"
               target="_blank"
               rel="noopener noreferrer"
