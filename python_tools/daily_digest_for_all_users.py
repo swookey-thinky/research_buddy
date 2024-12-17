@@ -23,7 +23,7 @@ Based on my specific research interests, relevancy score out of 10 for each pape
 Additionally, please generate 1-2 sentence summary for each paper explaining why it's relevant to my research interests.
 Please keep the paper order the same as in the input list, with one json format per line. Example is:
 1. {"Relevancy score": "an integer score out of 10", "Reasons for match": "1-2 sentence short reasonings"}
-In the JSON response, make sure to escape any quotations marks inside of the "Reasons for match" text with a triple backslash.
+In the JSON response, make sure to escape any '"' characters inside of the "Reasons for match" text '\\\"'.
 
 My research interests are:
 """
@@ -278,9 +278,9 @@ def post_process_chat_gpt_response(paper_data, response, threshold_score=8):
                     }
                 )
 
-        except json.decoder.JSONDecodeError:
+        except json.decoder.JSONDecodeError as decode_error:
             pprint.pprint(re.sub(pattern, "", line))
-            print(f"JSON Decode Exception, ignoring entry '{line}': {e}")
+            print(f"JSON Decode Exception, ignoring entry '{line}': {decode_error}")
             score_items.append(
                 {
                     "Relevancy score": 0,
