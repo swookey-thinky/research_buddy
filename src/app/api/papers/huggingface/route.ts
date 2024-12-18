@@ -104,8 +104,12 @@ export async function GET(request: Request) {
               : [entry.author.name],
             summary: entry.summary?.replace(/\n/g, ' ').trim() || '',
             published: entry.published || '',
-            category: entry.category['@_term'] || 'Unknown',
-            link: paper.arxivUrl
+            category: Array.isArray(entry.category)
+              ? entry.category[0]['@_term'] || 'Unknown'
+              : entry.category['@_term'] || 'Unknown',
+            link: Array.isArray(entry.link)
+              ? entry.link.find((l: any) => l['@_type'] === 'text/html')?.['@_href'] || entry.id
+                : entry.link['@_href'] || entry.id,
           };
         } catch (error) {
           console.error('Error fetching paper:', error);
