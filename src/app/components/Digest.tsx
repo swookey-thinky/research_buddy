@@ -7,6 +7,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import type { Paper } from '@/app/types/types';
 import { PaperCard } from '@/app/components/PaperCard';
 import { SingleDatePicker } from '@/app/components/SingleDatePicker';
+import { ProgressBar } from '@/app/components/ProgressBar';
 
 interface SavedDigest {
   id: string;
@@ -39,6 +40,9 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
   const [isLoadingPapers, setIsLoadingPapers] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [expandedDigests, setExpandedDigests] = useState<Record<string, boolean>>({});
+  const [totalPapers, setTotalPapers] = useState<Record<string, number>>({});
+  const [loadedPapers, setLoadedPapers] = useState<Record<string, number>>({});
+  const [fetchStatus, setFetchStatus] = useState<Record<string, boolean>>({});
 
   // Fetch saved digests
   useEffect(() => {
@@ -70,6 +74,12 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
   useEffect(() => {
     if (!user || savedDigests.length === 0) return;
 
+    // Clear previous results when date changes
+    setDigestResults({});
+    setLoadedPapers({});
+    setTotalPapers({});
+    setFetchStatus({});
+
     const fetchDigestResults = async () => {
       setIsLoadingPapers(true);
       const formattedDate = selectedDate.toISOString().split('T')[0];
@@ -77,6 +87,15 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
 
       try {
         for (const digest of savedDigests) {
+          // Skip if already fetching for this digest
+          if (fetchStatus[digest.name]) continue;
+
+          console.log("Fetching papers for digest: ", digest.name);
+          setFetchStatus(current => ({
+            ...current,
+            [digest.name]: true
+          }));
+
           const response = await fetch('/api/digest-papers', {
             method: 'POST',
             headers: {
@@ -89,20 +108,62 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
             }),
           });
 
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          if (!response.body) throw new Error('No response body');
+
+          results[digest.name] = [];
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+
+          // First message should be the total count
+          const { value } = await reader.read();
+          const firstChunk = decoder.decode(value);
+          const totalCountMatch = firstChunk.match(/data: {"total":(\d+)}/);
+          if (totalCountMatch) {
+            setTotalPapers(current => ({
+              ...current,
+              [digest.name]: parseInt(totalCountMatch[1])
+            }));
           }
 
-          const data = await response.json();
-          results[digest.name] = data.results;
-        }
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
 
-        setDigestResults(results);
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') break;
+
+                try {
+                  const paper = JSON.parse(data);
+                  results[digest.name].push(paper);
+
+                  setLoadedPapers(current => ({
+                    ...current,
+                    [digest.name]: (current[digest.name] || 0) + 1
+                  }));
+
+                  setDigestResults(current => ({
+                    ...current,
+                    [digest.name]: [...(current[digest.name] || []), paper]
+                  }));
+                } catch (e) {
+                  console.error('Error parsing paper:', e);
+                }
+              }
+            }
+          }
+        }
       } catch (error) {
         console.error('Error fetching digest results:', error);
         setError('Failed to fetch papers. Please try again.');
       } finally {
         setIsLoadingPapers(false);
+        setFetchStatus({});
       }
     };
 
@@ -406,8 +467,24 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
               </div>
 
               {isLoadingPapers ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                <div className="space-y-4 py-8">
+                  {savedDigests.map((digest) => (
+                    totalPapers[digest.name] ? (
+                      <ProgressBar
+                        key={digest.id}
+                        digestName={digest.name}
+                        loaded={loadedPapers[digest.name] || 0}
+                        total={totalPapers[digest.name]}
+                      />
+                    ) : (
+                      <div key={digest.id} className="flex items-center gap-2">
+                        <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                        <span className="text-sm text-gray-600">
+                          Initializing {digest.name}...
+                        </span>
+                      </div>
+                    )
+                  ))}
                 </div>
               ) : (
                 savedDigests.map((digest) => (

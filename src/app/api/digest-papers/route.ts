@@ -46,8 +46,6 @@ interface DigestRequest {
 }
 
 export async function POST(request: Request) {
-  console.log('📥 Digest papers request received');
-
   try {
     const data: DigestRequest = await request.json();
     const { userId, digestName, date } = data;
@@ -58,76 +56,114 @@ export async function POST(request: Request) {
       date
     });
 
-    const digestResultsRef = db
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const snapshot = await db
       .collection('daily_digest_results')
       .doc(userId)
       .collection(date)
       .doc(digestName)
-      .collection('results');
+      .collection('results')
+      .get();
 
-    console.log('📚 Fetching digest results from Firebase');
-    const snapshot = await digestResultsRef.get();
-    const paperPromises = snapshot.docs.map(async (doc) => {
-      const { arxiv_id, reason, relevancy_score } = doc.data();
+    if (snapshot.empty) {
+      return NextResponse.json({ results: [] });
+    }
 
-      try {
-        const params = new URLSearchParams({
-          id_list: arxiv_id,
-        });
+    // Create a TransformStream for streaming
+    const stream = new TransformStream();
+    const writer = stream.writable.getWriter();
+    const encoder = new TextEncoder();
 
-        const arxivUrl = `${ARXIV_API_URL}?${params}`;
-        console.log('🌐 Fetching paper from ArXiv:', arxivUrl);
-
-        const response = await fetchWithRetry(arxivUrl, {
-          headers: {
-            'Accept': 'application/xml'
-          }
-        });
-
-        const xmlText = await response.text();
-        console.log('📄 Received XML response length:', xmlText.length);
-
-        const parser = new XMLParser({
-          ignoreAttributes: false,
-          attributeNamePrefix: '@_'
-        });
-        const result = parser.parse(xmlText);
-
-        if (!result.feed?.entry) {
-          console.log('ℹ️ No entry found for paper:', arxiv_id);
-          return null;
-        }
-
-        const entry = result.feed.entry;
-
-        return {
-          id: arxiv_id,
-          title: entry.title?.replace(/\n/g, ' ').trim() || '',
-          authors: Array.isArray(entry.author)
-            ? entry.author.map((a: any) => a.name)
-            : [entry.author.name],
-          summary: entry.summary?.replace(/\n/g, ' ').trim() || '',
-          published: entry.published || '',
-          category: Array.isArray(entry.category)
-            ? entry.category[0]['@_term'] || 'Unknown'
-            : entry.category['@_term'] || 'Unknown',
-          link: Array.isArray(entry.link)
-            ? entry.link.find((l: any) => l['@_type'] === 'text/html')?.['@_href'] || entry.id
-            : entry.link['@_href'] || entry.id,
-          reason,
-          relevancy_score
-        };
-      } catch (error) {
-        console.error(`❌ Failed to process paper ${arxiv_id} after all retries:`, error);
-        return null;
-      }
+    // Start streaming response
+    const response = new Response(stream.readable, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
     });
 
-    console.log(`✅ Processing ${paperPromises.length} papers`);
-    const papers = (await Promise.all(paperPromises)).filter((p): p is NonNullable<typeof p> => p !== null);
-    papers.sort((a, b) => b.relevancy_score - a.relevancy_score);
+    // Process papers asynchronously
+    (async () => {
+      try {
+        const totalPapers = snapshot.size;
+        await writer.write(
+          encoder.encode(`data: {"total":${totalPapers}}\n\n`)
+        );
 
-    return NextResponse.json({ results: papers });
+        for (const doc of snapshot.docs) {
+          const { arxiv_id, reason, relevancy_score } = doc.data();
+          console.log('Retrieving paper: ', arxiv_id);
+
+          try {
+            const params = new URLSearchParams({
+              id_list: arxiv_id,
+            });
+
+            const arxivUrl = `${ARXIV_API_URL}?${params}`;
+            const response = await fetchWithRetry(arxivUrl, {
+              headers: {
+                'Accept': 'application/xml'
+              }
+            });
+
+            const xmlText = await response.text();
+            console.log('📄 Received XML response length: ', xmlText.length, ' from ', arxiv_id);
+
+            const parser = new XMLParser({
+              ignoreAttributes: false,
+              attributeNamePrefix: '@_'
+            });
+            const result = parser.parse(xmlText);
+
+            if (!result.feed?.entry) {
+              continue;
+            }
+
+            const entry = result.feed.entry;
+            const paper = {
+              id: arxiv_id,
+              title: entry.title?.replace(/\n/g, ' ').trim() || '',
+              authors: Array.isArray(entry.author)
+                ? entry.author.map((a: any) => a.name)
+                : [entry.author.name],
+              summary: entry.summary?.replace(/\n/g, ' ').trim() || '',
+              published: entry.published || '',
+              category: Array.isArray(entry.category)
+                ? entry.category[0]['@_term'] || 'Unknown'
+                : entry.category['@_term'] || 'Unknown',
+              link: Array.isArray(entry.link)
+                ? entry.link.find((l: any) => l['@_type'] === 'text/html')?.['@_href'] || entry.id
+                : entry.link['@_href'] || entry.id,
+              reason,
+              relevancy_score
+            };
+
+            // Send paper as SSE event
+            await writer.write(
+              encoder.encode(`data: ${JSON.stringify(paper)}\n\n`)
+            );
+          } catch (error) {
+            console.error(`Error processing paper ${arxiv_id}:`, error);
+          }
+        }
+
+        // Send end event and close the stream
+        await writer.write(encoder.encode('data: [DONE]\n\n'));
+        await writer.close();
+      } catch (error) {
+        console.error('Error in stream processing:', error);
+        await writer.abort(error);
+      }
+    })();
+
+    return response;
   } catch (error) {
     console.error('❌ Error processing digest:', error);
     return NextResponse.json(
