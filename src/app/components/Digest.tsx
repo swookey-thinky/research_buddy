@@ -78,14 +78,15 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
     setDigestResults({});
     setTotalPapers({});
 
+    // Reset current pages when date changes
+    setCurrentPages({});
+
     const fetchDigestResults = async () => {
       setIsLoadingPapers(true);
       const formattedDate = selectedDate.toISOString().split('T')[0];
 
       try {
         for (const digest of savedDigests) {
-          const currentPage = currentPages[digest.name] || 1;
-
           const response = await fetch('/api/digest-papers', {
             method: 'POST',
             headers: {
@@ -95,7 +96,7 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
               userId: user.uid,
               digestName: digest.name,
               date: formattedDate,
-              page: currentPage
+              page: 1 // Always fetch first page initially
             }),
           });
 
@@ -127,7 +128,7 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
     };
 
     fetchDigestResults();
-  }, [user, savedDigests, selectedDate, currentPages]);
+  }, [user, savedDigests, selectedDate]); // Remove currentPages dependency
 
   const handleDeleteDigest = async (digestId: string) => {
     if (!user) return;
