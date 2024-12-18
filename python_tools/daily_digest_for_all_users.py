@@ -328,7 +328,7 @@ def post_process_chat_gpt_response(paper_data, response, threshold_score=8):
 def generate_relevance_score(
     all_papers,
     query,
-    model_name="gpt-4o-mini",
+    model_name="gpt-3.5-turbo-16k",
     threshold_score=8,
     num_paper_in_prompt=4,
     temperature=0.4,
@@ -388,7 +388,7 @@ def query_papers_for_category(
     },
     date: str = None,
     data_dir="data",
-    model_name="gpt-4o-mini",
+    model_name="gpt-3.5-turbo-16k",
     threshold_score=8,
     num_paper_in_prompt=8,
     temperature=0.4,
