@@ -7,7 +7,6 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import type { Paper } from '@/app/types/types';
 import { PaperCard } from '@/app/components/PaperCard';
 import { SingleDatePicker } from '@/app/components/SingleDatePicker';
-import { ProgressBar } from '@/app/components/ProgressBar';
 
 interface SavedDigest {
   id: string;
@@ -41,8 +40,6 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [expandedDigests, setExpandedDigests] = useState<Record<string, boolean>>({});
   const [totalPapers, setTotalPapers] = useState<Record<string, number>>({});
-  const [loadedPapers, setLoadedPapers] = useState<Record<string, number>>({});
-  const [fetchStatus, setFetchStatus] = useState<Record<string, boolean>>({});
   const [currentPages, setCurrentPages] = useState<Record<string, number>>({});
   const [totalPages, setTotalPages] = useState<Record<string, number>>({});
   const [loadingMore, setLoadingMore] = useState<Record<string, boolean>>({});
@@ -79,9 +76,7 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
 
     // Clear previous results when date changes
     setDigestResults({});
-    setLoadedPapers({});
     setTotalPapers({});
-    setFetchStatus({});
 
     const fetchDigestResults = async () => {
       setIsLoadingPapers(true);
@@ -132,7 +127,7 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
     };
 
     fetchDigestResults();
-  }, [user, savedDigests, selectedDate]);
+  }, [user, savedDigests, selectedDate, currentPages]);
 
   const handleDeleteDigest = async (digestId: string) => {
     if (!user) return;

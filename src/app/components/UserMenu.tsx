@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { LogOut, User as UserIcon, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -23,10 +24,12 @@ export function UserMenu() {
       <div className="relative group">
         <div className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-100">
           {user.photoURL ? (
-            <img
+            <Image
               src={user.photoURL}
               alt={user.displayName || 'User'}
-              className="w-8 h-8 rounded-full"
+              width={32}
+              height={32}
+              className="rounded-full"
             />
           ) : (
             <UserIcon className="w-8 h-8 text-gray-600" />
