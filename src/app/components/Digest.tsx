@@ -43,6 +43,9 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
   const [totalPapers, setTotalPapers] = useState<Record<string, number>>({});
   const [loadedPapers, setLoadedPapers] = useState<Record<string, number>>({});
   const [fetchStatus, setFetchStatus] = useState<Record<string, boolean>>({});
+  const [currentPages, setCurrentPages] = useState<Record<string, number>>({});
+  const [totalPages, setTotalPages] = useState<Record<string, number>>({});
+  const [loadingMore, setLoadingMore] = useState<Record<string, boolean>>({});
 
   // Fetch saved digests
   useEffect(() => {
@@ -83,18 +86,10 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
     const fetchDigestResults = async () => {
       setIsLoadingPapers(true);
       const formattedDate = selectedDate.toISOString().split('T')[0];
-      const results: Record<string, Paper[]> = {};
 
       try {
         for (const digest of savedDigests) {
-          // Skip if already fetching for this digest
-          if (fetchStatus[digest.name]) continue;
-
-          console.log("Fetching papers for digest: ", digest.name);
-          setFetchStatus(current => ({
-            ...current,
-            [digest.name]: true
-          }));
+          const currentPage = currentPages[digest.name] || 1;
 
           const response = await fetch('/api/digest-papers', {
             method: 'POST',
@@ -104,66 +99,35 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
             body: JSON.stringify({
               userId: user.uid,
               digestName: digest.name,
-              date: formattedDate
+              date: formattedDate,
+              page: currentPage
             }),
           });
 
           if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-          if (!response.body) throw new Error('No response body');
 
-          results[digest.name] = [];
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
+          const data = await response.json();
 
-          // First message should be the total count
-          const { value } = await reader.read();
-          const firstChunk = decoder.decode(value);
-          const totalCountMatch = firstChunk.match(/data: {"total":(\d+)}/);
-          if (totalCountMatch) {
-            setTotalPapers(current => ({
-              ...current,
-              [digest.name]: parseInt(totalCountMatch[1])
-            }));
-          }
+          setTotalPapers(current => ({
+            ...current,
+            [digest.name]: data.totalPapers
+          }));
 
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
+          setTotalPages(current => ({
+            ...current,
+            [digest.name]: data.totalPages
+          }));
 
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6);
-                if (data === '[DONE]') break;
-
-                try {
-                  const paper = JSON.parse(data);
-                  results[digest.name].push(paper);
-
-                  setLoadedPapers(current => ({
-                    ...current,
-                    [digest.name]: (current[digest.name] || 0) + 1
-                  }));
-
-                  setDigestResults(current => ({
-                    ...current,
-                    [digest.name]: [...(current[digest.name] || []), paper]
-                  }));
-                } catch (e) {
-                  console.error('Error parsing paper:', e);
-                }
-              }
-            }
-          }
+          setDigestResults(current => ({
+            ...current,
+            [digest.name]: data.results
+          }));
         }
       } catch (error) {
         console.error('Error fetching digest results:', error);
         setError('Failed to fetch papers. Please try again.');
       } finally {
         setIsLoadingPapers(false);
-        setFetchStatus({});
       }
     };
 
@@ -286,6 +250,53 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
       ...prev,
       [digestId]: !prev[digestId]
     }));
+  };
+
+  const handleLoadMore = async (digestName: string) => {
+    const nextPage = (currentPages[digestName] || 1) + 1;
+    if (nextPage > (totalPages[digestName] || 1)) return;
+
+    setLoadingMore(current => ({
+      ...current,
+      [digestName]: true
+    }));
+
+    try {
+      const formattedDate = selectedDate.toISOString().split('T')[0];
+      const response = await fetch('/api/digest-papers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          digestName: digestName,
+          date: formattedDate,
+          page: nextPage
+        }),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+
+      setCurrentPages(current => ({
+        ...current,
+        [digestName]: nextPage
+      }));
+
+      setDigestResults(current => ({
+        ...current,
+        [digestName]: [...(current[digestName] || []), ...data.results]
+      }));
+    } catch (error) {
+      console.error('Error loading more papers:', error);
+      setError('Failed to load more papers. Please try again.');
+    } finally {
+      setLoadingMore(current => ({
+        ...current,
+        [digestName]: false
+      }));
+    }
   };
 
   return (
@@ -467,24 +478,11 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
               </div>
 
               {isLoadingPapers ? (
-                <div className="space-y-4 py-8">
-                  {savedDigests.map((digest) => (
-                    totalPapers[digest.name] ? (
-                      <ProgressBar
-                        key={digest.id}
-                        digestName={digest.name}
-                        loaded={loadedPapers[digest.name] || 0}
-                        total={totalPapers[digest.name]}
-                      />
-                    ) : (
-                      <div key={digest.id} className="flex items-center gap-2">
-                        <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                        <span className="text-sm text-gray-600">
-                          Initializing {digest.name}...
-                        </span>
-                      </div>
-                    )
-                  ))}
+                <div className="flex items-center justify-center py-8">
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                    <span className="text-sm text-gray-600">Loading papers...</span>
+                  </div>
                 </div>
               ) : (
                 savedDigests.map((digest) => (
@@ -503,7 +501,7 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
                       </div>
                       <div className="inline-block bg-gray-50 px-3 py-1 rounded-full">
                         <span className="text-sm font-medium text-gray-700">
-                          {digestResults[digest.name]?.length || 0} paper{(digestResults[digest.name]?.length || 0) === 1 ? '' : 's'}
+                          {totalPapers[digest.name] || 0} paper{(totalPapers[digest.name] || 0) === 1 ? '' : 's'}
                         </span>
                       </div>
                     </div>
@@ -524,6 +522,22 @@ export function Digest({ onPaperSelect, selectedPaperId }: DigestProps) {
                                 </div>
                               </div>
                             ))}
+                            {(currentPages[digest.name] || 1) < (totalPages[digest.name] || 1) && (
+                              <button
+                                onClick={() => handleLoadMore(digest.name)}
+                                disabled={loadingMore[digest.name]}
+                                className="w-full py-2 text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center gap-2"
+                              >
+                                {loadingMore[digest.name] ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Loading...
+                                  </>
+                                ) : (
+                                  'Load More Papers'
+                                )}
+                              </button>
+                            )}
                           </div>
                         ) : (
                           <p className="text-gray-600 text-sm">No papers found for today</p>

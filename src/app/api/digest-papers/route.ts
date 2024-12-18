@@ -43,18 +43,14 @@ interface DigestRequest {
   userId: string;
   digestName: string;
   date: string;
+  page?: number;
 }
 
 export async function POST(request: Request) {
   try {
     const data: DigestRequest = await request.json();
-    const { userId, digestName, date } = data;
-
-    console.log('🔍 Request parameters:', {
-      userId,
-      digestName,
-      date
-    });
+    const { userId, digestName, date, page = 1 } = data;
+    const pageSize = 20;
 
     if (!userId) {
       return NextResponse.json(
@@ -72,34 +68,25 @@ export async function POST(request: Request) {
       .get();
 
     if (snapshot.empty) {
-      return NextResponse.json({ results: [] });
+      return NextResponse.json({
+        results: [],
+        totalPages: 0,
+        totalPapers: 0,
+        currentPage: page
+      });
     }
 
-    // Create a TransformStream for streaming
-    const stream = new TransformStream();
-    const writer = stream.writable.getWriter();
-    const encoder = new TextEncoder();
+    const totalPapers = snapshot.size;
+    const totalPages = Math.ceil(totalPapers / pageSize);
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
 
-    // Start streaming response
-    const response = new Response(stream.readable, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
-    });
-
-    // Process papers asynchronously
-    (async () => {
-      try {
-        const totalPapers = snapshot.size;
-        await writer.write(
-          encoder.encode(`data: {"total":${totalPapers}}\n\n`)
-        );
-
-        for (const doc of snapshot.docs) {
+    // Get the papers for the current page
+    const papers = await Promise.all(
+      snapshot.docs
+        .slice(startIndex, endIndex)
+        .map(async (doc) => {
           const { arxiv_id, reason, relevancy_score } = doc.data();
-          console.log('Retrieving paper: ', arxiv_id);
 
           try {
             const params = new URLSearchParams({
@@ -114,8 +101,6 @@ export async function POST(request: Request) {
             });
 
             const xmlText = await response.text();
-            console.log('📄 Received XML response length: ', xmlText.length, ' from ', arxiv_id);
-
             const parser = new XMLParser({
               ignoreAttributes: false,
               attributeNamePrefix: '@_'
@@ -123,11 +108,11 @@ export async function POST(request: Request) {
             const result = parser.parse(xmlText);
 
             if (!result.feed?.entry) {
-              continue;
+              return null;
             }
 
             const entry = result.feed.entry;
-            const paper = {
+            return {
               id: arxiv_id,
               title: entry.title?.replace(/\n/g, ' ').trim() || '',
               authors: Array.isArray(entry.author)
@@ -144,26 +129,22 @@ export async function POST(request: Request) {
               reason,
               relevancy_score
             };
-
-            // Send paper as SSE event
-            await writer.write(
-              encoder.encode(`data: ${JSON.stringify(paper)}\n\n`)
-            );
           } catch (error) {
             console.error(`Error processing paper ${arxiv_id}:`, error);
+            return null;
           }
-        }
+        })
+    );
 
-        // Send end event and close the stream
-        await writer.write(encoder.encode('data: [DONE]\n\n'));
-        await writer.close();
-      } catch (error) {
-        console.error('Error in stream processing:', error);
-        await writer.abort(error);
-      }
-    })();
+    const validPapers = papers.filter((p): p is NonNullable<typeof p> => p !== null);
 
-    return response;
+    return NextResponse.json({
+      results: validPapers,
+      totalPages,
+      totalPapers,
+      currentPage: page
+    });
+
   } catch (error) {
     console.error('❌ Error processing digest:', error);
     return NextResponse.json(
