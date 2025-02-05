@@ -125,6 +125,45 @@ export function AdditionalResources() {
 
       <section className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center gap-2 mb-4">
+          <Database className="w-6 h-6 text-blue-600" />
+          <h2 className="text-2xl font-semibold text-gray-800">Tutorials</h2>
+        </div>
+        <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
+        <li>
+            <a
+              href="https://jax-ml.github.io/scaling-book/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              DeepMind: Scaling Book - How To Scale Your Model
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://colab.research.google.com/drive/1bfhs1FMLW3FGa8ydvkOZyBNxLYOu0Hev?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Training a Small Math Reasoner with RL (GRPO)
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://github.com/Jiayi-Pan/TinyZero"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Tiny Zero - Reproduce DeepSeek-R1-Zero for $30
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <section className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex items-center gap-2 mb-4">
           <Github className="w-6 h-6 text-blue-600" />
           <h2 className="text-2xl font-semibold text-gray-800">Github Repositories</h2>
         </div>
