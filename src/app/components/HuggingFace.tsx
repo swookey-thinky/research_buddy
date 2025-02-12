@@ -16,6 +16,8 @@ export function HuggingFace({ onPaperSelect, selectedPaperId }: HuggingFaceProps
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const { papers, loading, error } = useHuggingFacePapers(selectedDate);
 
+  const isNoDataForDate = error?.includes('400'); // Check if error is a 400 status
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
       <div className="container mx-auto px-4 py-8">
@@ -35,17 +37,17 @@ export function HuggingFace({ onPaperSelect, selectedPaperId }: HuggingFaceProps
           </div>
         )}
 
-        {error && (
+        {error && !isNoDataForDate && (
           <div className="text-center text-red-600 bg-red-50 p-4 rounded-lg mb-6">
             <p className="font-semibold">Error loading papers</p>
             <p className="text-sm mt-1">{error}</p>
           </div>
         )}
 
-        {!loading && !error && papers.length === 0 && (
+        {((!loading && !error && papers.length === 0) || isNoDataForDate) && (
           <div className="text-center text-gray-600 bg-white p-8 rounded-lg shadow">
-            <p className="text-lg font-medium">No papers found</p>
-            <p className="mt-2">Check back later for new papers</p>
+            <p className="text-lg font-medium">No papers found for {selectedDate.toLocaleDateString()}</p>
+            <p className="mt-2">Please try selecting a different date</p>
           </div>
         )}
 
