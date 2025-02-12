@@ -24,7 +24,8 @@ export function useHuggingFacePapers(date: Date) {
         });
 
         if (!response.ok) {
-          throw new Error(`${response.status} - Failed to fetch papers`);
+          const errorData = await response.json();
+          throw new Error(errorData.error || `${response.status} - Failed to fetch papers`);
         }
 
         const data = await response.json();
