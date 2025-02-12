@@ -122,8 +122,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ papers: validPapers });
   } catch (error) {
     console.error('Error fetching HuggingFace papers:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to fetch papers' },
+      { error: `Failed to fetch papers: ${errorMessage}` },
       { status: 500 }
     );
   }
