@@ -24,7 +24,7 @@ export function useHuggingFacePapers(date: Date) {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch papers');
+          throw new Error(`${response.status} - Failed to fetch papers`);
         }
 
         const data = await response.json();
@@ -34,7 +34,7 @@ export function useHuggingFacePapers(date: Date) {
           return;
         }
         console.error('Error fetching papers:', err);
-        setError('Failed to fetch papers. Please try again later.');
+        setError(err instanceof Error ? err.message : 'Failed to fetch papers');
         setPapers([]);
       } finally {
         setLoading(false);
