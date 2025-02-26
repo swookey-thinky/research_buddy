@@ -139,6 +139,16 @@ export function AdditionalResources() {
               DeepMind: Scaling Book - How To Scale Your Model
             </a>
           </li>
+        <li>
+            <a
+              href="https://huggingface.co/spaces/nanotron/ultrascale-playbook"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              The Ultra-Scale Playbook: Training LLMs on GPU Clusters
+            </a>
+          </li>
           <li>
             <a
               href="https://colab.research.google.com/drive/1bfhs1FMLW3FGa8ydvkOZyBNxLYOu0Hev?usp=sharing"
