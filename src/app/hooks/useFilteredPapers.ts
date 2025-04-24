@@ -57,7 +57,14 @@ export function useFilteredPapers(papers: Paper[], selectedTag: string | null) {
           );
 
           const validAdditionalPapers = additionalPapers.filter((p): p is Paper => p !== null);
-          setFilteredPapers([...papersWithTag, ...validAdditionalPapers]);
+          const allPapers = [...papersWithTag, ...validAdditionalPapers];
+
+          // Sort papers by published date in descending order
+          const sortedPapers = allPapers.sort((a, b) =>
+            new Date(b.published).getTime() - new Date(a.published).getTime()
+          );
+
+          setFilteredPapers(sortedPapers);
         }
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {

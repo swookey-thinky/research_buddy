@@ -151,6 +151,16 @@ export function AdditionalResources() {
           </li>
           <li>
             <a
+              href="https://blog.eleuther.ai/transformer-math/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Transformer Math 101
+            </a>
+          </li>
+          <li>
+            <a
               href="https://colab.research.google.com/drive/1bfhs1FMLW3FGa8ydvkOZyBNxLYOu0Hev?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
@@ -236,6 +246,26 @@ export function AdditionalResources() {
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
               Microsoft DeepSpeed
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://github.com/karpathy/nanoGPT"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              NanoGPT
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://github.com/wolfecameron/nanoMoE"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              NanoMoE
             </a>
           </li>
         </ul>
